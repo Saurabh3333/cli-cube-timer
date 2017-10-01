@@ -122,13 +122,13 @@ module.exports = function () {
   var post_inspect = new Stopwatch(2000);
   var stopwatch = new Stopwatch();
 
-  inspect.on('time', function (time) {
+  var onInspectTimeFunction = function (time) {
     if(!inspect.hasBeenStopped) {
       charm.position(1, start_inspect).write('Inspecting: ' + String('00' + (time.ms / 1000).toFixed()).slice(-2));
     }
-  });
+  };
 
-  inspect.on('done', function () {
+  var onInspectDoneFunction = function () {
     charm.position(1, start_inspect);
     charm.erase('end');
     charm.position(1, start_inspect + 1);
@@ -138,9 +138,9 @@ module.exports = function () {
     inspecting = false;
     post_inspecting = true;
     post_inspect.start();
-  });
+  };
 
-  post_inspect.on('done', function () {
+  var onPostInspectDoneFunction = function () {
     charm.position(1, start_inspect);
     charm.erase('end');
     charm.position(1, start_inspect + 1);
@@ -157,14 +157,21 @@ module.exports = function () {
     start_solve += 3;
     last_solve = 'DNF';
 
-  });
+  };
 
-  stopwatch.on('time', function (time) {
+  inspect.on('time', onInspectTimeFunction);
+  inspect.on('done', onInspectDoneFunction);
+
+  post_inspect.on('done', onPostInspectDoneFunction);
+
+  var onStopwatchTimeFunction = function (time) {
     if(!solving) {
       return;
     }
     charm.position(1, start_solve).write('Solving: ' + (time.ms / 1000).toFixed(2));
-  });
+  };
+
+  stopwatch.on('time', onStopwatchTimeFunction);
 
   var stats = require('./solvestats-module.js');
   var calcStats = stats.calcStats;
@@ -192,93 +199,107 @@ module.exports = function () {
   var best_time = 0.0;
   var worst_time = 0.0;
 
-  process.stdin.on('keypress', function (ch, key) {
+  var onKeyPressE = function () {
+    console.log("\n\n" + clc.green("SESSION ENDED. Session stats follow:") + "\n\n");
+    print_stats(start_time, total_time.ms, solves_today.length, ao5, ao12, ao_session, best_time, worst_time);
+    return process.exit(0);
+  }
+
+  var onKeyPressS = function () {
+    charm.erase('line');
+    charm.left(1);
+
+    var printed = print_stats(start_time, total_time.ms, solves_today.length, ao5, ao12, ao_session, best_time, worst_time);
+
+    userSay('Press space to initiate a new solve');
+
+    start_solve += (STATS_LINES + printed.solve);
+    start_inspect += (STATS_LINES + printed.inspect);
+  }
+
+  var onKeyPressSpace = function () {
+    if(!inspecting && !post_inspecting && !solving) {
+      // A new solve has been initiated
+      inspect.start();
+      inspecting = true;
+    } else {
+      if(inspecting && !post_inspecting && !solving) {
+        // Inspection ends, solving begins
+        inspect.stop();
+        inspect.reset(0);
+        stopwatch.start();
+        inspecting = false;
+        solving = true;
+      } else {
+        if(!inspecting && post_inspecting && !solving) {
+          // Inspection has ended, with a penalty of +2
+          // Solving begins
+          post_inspect.stop();
+          inspect.reset(0);
+          post_inspect.reset(0);
+          stopwatch.start();
+          post_inspecting = false;
+          solving = true;
+          penalty = 2000;
+        } else {
+          if(!inspecting && !post_inspecting && solving) {
+            var solveTime = stopwatch.ms;
+
+            solveTime = solveTime + penalty;
+
+            addToStatsModule(solveTime);
+
+            writeLocal(this_solve, this_scramble);
+
+            charm.position(1, start_inspect);
+            botSay('That solve was ' + clc.green(prettify(solveTime)) +
+              (penalty === 0 ? ' (OK)' : clc.red(' (+2)')));
+
+            if(num_solves > 1) {
+              charm.position(right_row_num, start_inspect);
+              console.log(clc.red(num_solves < 5 ? 'Previous solve: ' : "This session's AO5: ") +
+                clc.blue(typeof last_solve === 'number' ? prettify(num_solves < 5 ? last_solve : ao5) : 'DNF'));
+            }
+
+            last_solve = solveTime;
+
+            prepNewSolve();
+
+            start_solve += 3;
+            start_inspect += 3;
+
+            resetForNextSolve();
+
+          }
+        }
+      }
+    }
+  }
+
+  var onKeypressFunction = function (ch, key) {
     switch(key.name) {
       case 'e':
-        console.log("\n\n" + clc.green("SESSION ENDED. Session stats follow:") + "\n\n");
-        print_stats(start_time, total_time.ms, solves_today.length, ao5, ao12, ao_session, best_time, worst_time);
-        return process.exit(0);
+        onKeyPressE();
+        break;
 
       case 's':
-        charm.erase('line');
-        charm.left(1);
-
-        var printed = print_stats(start_time, total_time.ms, solves_today.length, ao5, ao12, ao_session, best_time, worst_time);
-
-        userSay('Press space to initiate a new solve');
-
-        start_solve += (STATS_LINES + printed.solve);
-        start_inspect += (STATS_LINES + printed.inspect);
-
+        onKeyPressS();
         break;
 
       case 'space':
-
-        if(!inspecting && !post_inspecting && !solving) {
-          // A new solve has been initiated
-          inspect.start();
-          inspecting = true;
-        } else {
-          if(inspecting && !post_inspecting && !solving) {
-            // Inspection ends, solving begins
-            inspect.stop();
-            inspect.reset(0);
-            stopwatch.start();
-            inspecting = false;
-            solving = true;
-          } else {
-            if(!inspecting && post_inspecting && !solving) {
-              // Inspection has ended, with a penalty of +2
-              // Solving begins
-              post_inspect.stop();
-              inspect.reset(0);
-              post_inspect.reset(0);
-              stopwatch.start();
-              post_inspecting = false;
-              solving = true;
-              penalty = 2000;
-            } else {
-              if(!inspecting && !post_inspecting && solving) {
-                var solveTime = stopwatch.ms;
-
-                solveTime = solveTime + penalty;
-
-                addToStatsModule(solveTime);
-
-                writeLocal(this_solve, this_scramble);
-
-                charm.position(1, start_inspect);
-                botSay('That solve was ' + clc.green(prettify(solveTime)) +
-                  (penalty === 0 ? ' (OK)' : clc.red(' (+2)')));
-
-                if(num_solves > 1) {
-                  charm.position(right_row_num, start_inspect);
-                  console.log(clc.red(num_solves < 5 ? 'Previous solve: ' : "This session's AO5: ") +
-                    clc.blue(typeof last_solve === 'number' ? prettify(num_solves < 5 ? last_solve : ao5) : 'DNF'));
-                }
-
-                last_solve = solveTime;
-
-                prepNewSolve();
-
-                start_solve += 3;
-                start_inspect += 3;
-
-                resetForNextSolve();
-
-              }
-            }
-          }
-        }
-
+        onKeyPressSpace();
         break;
 
+      default:
+      // do nothing
     }
 
     if(key.ctrl && key.name === 'c') {
       process.stdin.pause();
     }
-  });
+  };
+
+  process.stdin.on('keypress', onKeypressFunction);
 
   process.stdin.setRawMode(true);
   process.stdin.resume();
