@@ -44,16 +44,21 @@ module.exports = function () {
     charm.erase('end');
   }
 
-  function resetForNextSolve() {
+  function endSolve() {
     stopwatch.stop();
 
     stopwatch.reset(0);
     post_inspect.reset(0);
     inspect.reset(0);
+  }
 
-    solving = false;
+  function resetForNextSolve() {
+    endSolve();
+
     inspecting = false;
     post_inspecting = false;
+    solving = false;
+    post_solving = false;
 
     eraseInspectSolveLines();
 
@@ -184,9 +189,10 @@ module.exports = function () {
    */
   var solveSink = [];
 
-  var solving = false;
   var inspecting = false;
   var post_inspecting = false;
+  var solving = false;
+  var post_solving = false;
 
   var start_inspect = 5;
   var start_solve = 6;
@@ -291,25 +297,55 @@ module.exports = function () {
 
     last_solve = solveTime;
 
+    endSolve();
+  }
+
+  var handlePostSolve = function (withPenalty, didNotFinish) {
+    if(!inspecting && !post_inspecting && !solving && !post_solving) {
+      return;
+    }
+
+    if(solveSink.length <= 0) {
+      return;
+    }
+
+    var lastSolveTime = solveSink[solveSink.length - 1].solveTime;
+
+    if(withPenalty) {
+      //  If the cube can be solved with one turn,
+      // then 2 seconds is added onto the time
+
+      if(!isNaN(lastSolveTime)) {
+        lastSolveTime = parseFloat(lastSolveTime) + 2000;
+      }
+
+    }
+
+    if(didNotFinish) {
+      lastSolveTime = 'DNF';
+    }
+
+    solveSink[solveSink.length - 1].solveTime = lastSolveTime;
+
     resetSolve();
   }
 
   var handleSolve = function () {
-    if(!inspecting && !post_inspecting && !solving) {
+    if(!inspecting && !post_inspecting && !solving && !post_solving) {
       // A new solve has been initiated
       startInspection();
 
       return;
     }
 
-    if(inspecting && !post_inspecting && !solving) {
+    if(inspecting && !post_inspecting && !solving && !post_solving) {
       // Inspection ends, solving begins
       startSolving();
 
       return;
     }
 
-    if(!inspecting && post_inspecting && !solving) {
+    if(!inspecting && post_inspecting && !solving && !post_solving) {
       // Inspection has ended, with a penalty of +2
       // Solving begins
       startSolvingWithPenalty();
@@ -317,15 +353,28 @@ module.exports = function () {
       return;
     }
 
-    if(!inspecting && !post_inspecting && solving) {
+    if(!inspecting && !post_inspecting && solving && !post_solving) {
       finishSolving();
 
       return;
     }
   }
 
-  var onKeypressFunction = function (ch, key) {
-    switch(key.name) {
+  var onKeypressFunction = function (char, key) {
+    var keySet = typeof (key) === 'object' && key.hasOwnProperty('name');
+    var keyInput = null;
+
+    if(keySet) {
+      keyInput = key.name;
+
+      if(key.ctrl && key.name === 'c') {
+        process.stdin.pause();
+      }
+    } else {
+      keyInput = char;
+    }
+
+    switch(keyInput) {
       case 'e':
         exitApplication();
         break;
@@ -337,13 +386,14 @@ module.exports = function () {
       case 'space':
         handleSolve();
         break;
-
+      case '+':
+        handlePostSolve(true, false);
+        break;
+      case 'd':
+        handlePostSolve(false, true);
+        break;
       default:
       // do nothing
-    }
-
-    if(key.ctrl && key.name === 'c') {
-      process.stdin.pause();
     }
   };
 
