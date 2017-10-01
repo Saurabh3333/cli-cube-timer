@@ -273,21 +273,29 @@ module.exports = function () {
     if(!inspecting && !post_inspecting && !solving) {
       // A new solve has been initiated
       startInspection();
-    } else {
-      if(inspecting && !post_inspecting && !solving) {
-        // Inspection ends, solving begins
-        startSolving();
-      } else {
-        if(!inspecting && post_inspecting && !solving) {
-          // Inspection has ended, with a penalty of +2
-          // Solving begins
-          startSolvingWithPenalty();
-        } else {
-          if(!inspecting && !post_inspecting && solving) {
-            finishSolving();
-          }
-        }
-      }
+
+      return;
+    }
+
+    if(inspecting && !post_inspecting && !solving) {
+      // Inspection ends, solving begins
+      startSolving();
+
+      return;
+    }
+
+    if(!inspecting && post_inspecting && !solving) {
+      // Inspection has ended, with a penalty of +2
+      // Solving begins
+      startSolvingWithPenalty();
+
+      return;
+    }
+
+    if(!inspecting && !post_inspecting && solving) {
+      finishSolving();
+
+      return;
     }
   }
 
