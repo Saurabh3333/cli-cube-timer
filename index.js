@@ -217,59 +217,74 @@ module.exports = function () {
     start_inspect += (STATS_LINES + printed.inspect);
   }
 
+  var startInspection = function () {
+    inspect.start();
+    inspecting = true;
+  }
+
+  var startSolving = function () {
+    inspect.stop();
+    inspect.reset(0);
+    stopwatch.start();
+    inspecting = false;
+    solving = true;
+  }
+
+  var startSolvingWithPenalty = function () {
+    post_inspect.stop();
+    inspect.reset(0);
+    post_inspect.reset(0);
+    stopwatch.start();
+    post_inspecting = false;
+    solving = true;
+    penalty = 2000;
+  }
+
+  var finishSolving = function () {
+    var solveTime = stopwatch.ms;
+
+    solveTime = solveTime + penalty;
+
+    addToStatsModule(solveTime);
+
+    writeLocal(this_solve, this_scramble);
+
+    charm.position(1, start_inspect);
+    botSay('That solve was ' + clc.green(prettify(solveTime)) +
+      (penalty === 0 ? ' (OK)' : clc.red(' (+2)')));
+
+    if(num_solves > 1) {
+      charm.position(right_row_num, start_inspect);
+      console.log(clc.red(num_solves < 5 ? 'Previous solve: ' : "This session's AO5: ") +
+        clc.blue(typeof last_solve === 'number' ? prettify(num_solves < 5 ? last_solve : ao5) : 'DNF'));
+    }
+
+    last_solve = solveTime;
+
+    prepNewSolve();
+
+    start_solve += 3;
+    start_inspect += 3;
+
+    resetForNextSolve();
+  }
+
   var onKeyPressSpace = function () {
     if(!inspecting && !post_inspecting && !solving) {
       // A new solve has been initiated
-      inspect.start();
-      inspecting = true;
+      startInspection();
     } else {
       if(inspecting && !post_inspecting && !solving) {
         // Inspection ends, solving begins
-        inspect.stop();
-        inspect.reset(0);
-        stopwatch.start();
-        inspecting = false;
-        solving = true;
+        startSolving();
       } else {
         if(!inspecting && post_inspecting && !solving) {
           // Inspection has ended, with a penalty of +2
           // Solving begins
-          post_inspect.stop();
-          inspect.reset(0);
-          post_inspect.reset(0);
-          stopwatch.start();
-          post_inspecting = false;
-          solving = true;
-          penalty = 2000;
+          startSolvingWithPenalty();
         } else {
           if(!inspecting && !post_inspecting && solving) {
-            var solveTime = stopwatch.ms;
-
-            solveTime = solveTime + penalty;
-
-            addToStatsModule(solveTime);
-
-            writeLocal(this_solve, this_scramble);
-
-            charm.position(1, start_inspect);
-            botSay('That solve was ' + clc.green(prettify(solveTime)) +
-              (penalty === 0 ? ' (OK)' : clc.red(' (+2)')));
-
-            if(num_solves > 1) {
-              charm.position(right_row_num, start_inspect);
-              console.log(clc.red(num_solves < 5 ? 'Previous solve: ' : "This session's AO5: ") +
-                clc.blue(typeof last_solve === 'number' ? prettify(num_solves < 5 ? last_solve : ao5) : 'DNF'));
-            }
-
-            last_solve = solveTime;
-
-            prepNewSolve();
-
-            start_solve += 3;
-            start_inspect += 3;
-
-            resetForNextSolve();
-
+            finishSolving();
           }
         }
       }
