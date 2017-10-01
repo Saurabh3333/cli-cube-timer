@@ -1,12 +1,16 @@
 module.exports = function () {
-  var Stopwatch = require('timer-stopwatch');
-  var keypress = require('keypress');
-  var clc = require('cli-color');
   var charm = require('charm')();
-  var Scrambo = require('scrambo');
-  var threebythree = new Scrambo();
+  var clc = require('cli-color');
+  var keypress = require('keypress');
   var prettyMs = require('pretty-ms');
-  var this_scramble, this_solve, stats = {};
+  var Scrambo = require('scrambo');
+  var Stopwatch = require('timer-stopwatch');
+
+  var threebythree = new Scrambo();
+
+  var this_scramble = {};
+  var this_solve = {};
+  var stats = {};
 
   const STATS_LINES = 11;
 
