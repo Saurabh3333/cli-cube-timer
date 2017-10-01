@@ -179,6 +179,11 @@ module.exports = function () {
   var push = require('./file-module.js');
   var writeLocal = push.writeLocal;
 
+  /**
+   * Cache for Solves
+   */
+  var solveSink = [];
+
   var solving = false;
   var inspecting = false;
   var post_inspecting = false;
@@ -198,6 +203,20 @@ module.exports = function () {
   var ao_session = 0.0;
   var best_time = 0.0;
   var worst_time = 0.0;
+
+  var pushSolveSink = function (solveTime, scramble) {
+    solveSink.push({solveTime: solveTime, scramble: scramble});
+  }
+
+  var flushSolveSink = function () {
+    if(solveSink.length <= 0) {
+      return;
+    }
+
+    for(var i = 0; i < solveSink.length; i++) {
+      writeLocal(solveSink[i].solveTime, solveSink[i].scramble);
+    }
+  }
 
   var exitApplication = function () {
     console.log("\n\n" + clc.green("SESSION ENDED. Session stats follow:") + "\n\n");
@@ -240,6 +259,17 @@ module.exports = function () {
     penalty = 2000;
   }
 
+  var resetSolve = function () {
+    flushSolveSink();
+
+    prepNewSolve();
+
+    start_solve += 3;
+    start_inspect += 3;
+
+    resetForNextSolve();
+  }
+
   var finishSolving = function () {
     var solveTime = stopwatch.ms;
 
@@ -247,7 +277,7 @@ module.exports = function () {
 
     addToStatsModule(solveTime);
 
-    writeLocal(this_solve, this_scramble);
+    pushSolveSink(this_solve, this_scramble);
 
     charm.position(1, start_inspect);
     botSay('That solve was ' + clc.green(prettify(solveTime)) +
@@ -261,12 +291,7 @@ module.exports = function () {
 
     last_solve = solveTime;
 
-    prepNewSolve();
-
-    start_solve += 3;
-    start_inspect += 3;
-
-    resetForNextSolve();
+    resetSolve();
   }
 
   var handleSolve = function () {
