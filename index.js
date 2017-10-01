@@ -50,6 +50,11 @@ module.exports = function () {
     stopwatch.reset(0);
     post_inspect.reset(0);
     inspect.reset(0);
+
+    // start_solve += 1;
+    // start_inspect += 1;
+
+    eraseInspectSolveLines();
   }
 
   function resetForNextSolve() {
@@ -59,8 +64,6 @@ module.exports = function () {
     post_inspecting = false;
     solving = false;
     post_solving = false;
-
-    eraseInspectSolveLines();
 
     penalty = 0;
   }
@@ -270,9 +273,6 @@ module.exports = function () {
 
     prepNewSolve();
 
-    start_solve += 3;
-    start_inspect += 3;
-
     resetForNextSolve();
   }
 
@@ -285,6 +285,8 @@ module.exports = function () {
 
     pushSolveSink(this_solve, this_scramble);
 
+    endSolve();
+
     charm.position(1, start_inspect);
     botSay('That solve was ' + clc.green(prettify(solveTime)) +
       (penalty === 0 ? ' (OK)' : clc.red(' (+2)')));
@@ -295,9 +297,10 @@ module.exports = function () {
         clc.blue(typeof last_solve === 'number' ? prettify(num_solves < 5 ? last_solve : ao5) : 'DNF'));
     }
 
-    last_solve = solveTime;
+    charm.position(1, start_inspect + 1);
+    botSay('How did you fare? Press + to add penalty or d to set DNF.');
 
-    endSolve();
+    last_solve = solveTime;
   }
 
   var handlePostSolve = function (withPenalty, didNotFinish) {
