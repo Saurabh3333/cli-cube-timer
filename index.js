@@ -6,33 +6,33 @@ module.exports = function () {
   var Scrambo = require('scrambo');
   var threebythree = new Scrambo();
   var prettyMs = require('pretty-ms');
-  var this_scramble, this_solve, stats = { };
+  var this_scramble, this_solve, stats = {};
 
   const STATS_LINES = 11;
 
-  function prettify (ms) {
+  function prettify(ms) {
     return prettyMs(ms, {secDecimalDigits: 2});
   }
 
-  function prettifyVerbose (ms) {
+  function prettifyVerbose(ms) {
     return prettyMs(ms, {verbose: true, secDecimalDigits: 2});
   }
 
-  function botSay (phrase) {
+  function botSay(phrase) {
     console.log(clc.red('Bot: ') + phrase);
   }
 
-  function userSay (phrase) {
+  function userSay(phrase) {
     console.log(clc.blue('You: ') + phrase);
   }
 
-  function prepNewSolve () {
+  function prepNewSolve() {
     userSay('Press space to initiate a solve.');
     this_scramble = threebythree.get(1).join(' ');
     botSay(this_scramble);
   }
 
-  function eraseInspectSolveLines () {
+  function eraseInspectSolveLines() {
     charm.position(1, start_inspect);
     charm.erase('end');
 
@@ -40,7 +40,7 @@ module.exports = function () {
     charm.erase('end');
   }
 
-  function resetForNextSolve () {
+  function resetForNextSolve() {
     stopwatch.stop();
 
     stopwatch.reset(0);
@@ -56,8 +56,8 @@ module.exports = function () {
     penalty = 0;
   }
 
-  function addToStatsModule (solveTime) {
-    if (typeof solveTime !== 'number') {
+  function addToStatsModule(solveTime) {
+    if(typeof solveTime !== 'number') {
       return;
     }
 
@@ -73,31 +73,31 @@ module.exports = function () {
     worst_time = stats.worst_time;
   }
 
-  function print_stats (start_time, total_ms, num_solves, ao5, ao12, ao_session, best_time, worst_time) {
+  function print_stats(start_time, total_ms, num_solves, ao5, ao12, ao_session, best_time, worst_time) {
     console.log('Session statistics');
     console.log('Session started at ' + start_time);
     console.log('You have been cubing for ' + prettifyVerbose(total_ms));
     console.log('Total solves: ' + clc.blue(num_solves));
 
-    if (best_time !== undefined) {
+    if(best_time !== undefined) {
       console.log(clc.green('Best solve: ') + clc.blue(prettifyVerbose(best_time)));
     }
 
-    if (worst_time !== undefined) {
+    if(worst_time !== undefined) {
       console.log(clc.green('Worst solve: ') + clc.blue(prettifyVerbose(worst_time)));
     }
 
-    var ret = { solve: 0, inspect: 0 };
+    var ret = {solve: 0, inspect: 0};
 
-    if (num_solves >= 5) {
+    if(num_solves >= 5) {
       console.log('Your current ' + clc.red('AO5') + ' is ' + clc.blue(prettifyVerbose(ao5)));
-      ret.solve ++;
-      ret.inspect ++;
+      ret.solve++;
+      ret.inspect++;
     }
-    if (num_solves >= 12) {
+    if(num_solves >= 12) {
       console.log('Your current ' + clc.red('AO12') + ' is ' + clc.blue(prettifyVerbose(ao12)));
-      ret.solve ++;
-      ret.inspect ++;
+      ret.solve++;
+      ret.inspect++;
     }
 
     console.log('Your current ' + clc.red('Session average') + ' is ' + clc.blue(prettifyVerbose(ao_session)));
@@ -119,7 +119,7 @@ module.exports = function () {
   var stopwatch = new Stopwatch();
 
   inspect.on('time', function (time) {
-    if (!inspect.hasBeenStopped) {
+    if(!inspect.hasBeenStopped) {
       charm.position(1, start_inspect).write('Inspecting: ' + String('00' + (time.ms / 1000).toFixed()).slice(-2));
     }
   });
@@ -156,7 +156,7 @@ module.exports = function () {
   });
 
   stopwatch.on('time', function (time) {
-    if (!solving) {
+    if(!solving) {
       return;
     }
     charm.position(1, start_solve).write('Solving: ' + (time.ms / 1000).toFixed(2));
@@ -189,7 +189,7 @@ module.exports = function () {
   var worst_time = 0.0;
 
   process.stdin.on('keypress', function (ch, key) {
-    switch (key.name) {
+    switch(key.name) {
       case 'e':
         console.log("\n\n" + clc.green("SESSION ENDED. Session stats follow:") + "\n\n");
         print_stats(start_time, total_time.ms, solves_today.length, ao5, ao12, ao_session, best_time, worst_time);
@@ -210,12 +210,12 @@ module.exports = function () {
 
       case 'space':
 
-        if (!inspecting && !post_inspecting && !solving) {
+        if(!inspecting && !post_inspecting && !solving) {
           // A new solve has been initiated
           inspect.start();
           inspecting = true;
         } else {
-          if (inspecting && !post_inspecting && !solving) {
+          if(inspecting && !post_inspecting && !solving) {
             // Inspection ends, solving begins
             inspect.stop();
             inspect.reset(0);
@@ -223,7 +223,7 @@ module.exports = function () {
             inspecting = false;
             solving = true;
           } else {
-            if (!inspecting && post_inspecting && !solving) {
+            if(!inspecting && post_inspecting && !solving) {
               // Inspection has ended, with a penalty of +2
               // Solving begins
               post_inspect.stop();
@@ -234,7 +234,7 @@ module.exports = function () {
               solving = true;
               penalty = 2000;
             } else {
-              if (!inspecting && !post_inspecting && solving) {
+              if(!inspecting && !post_inspecting && solving) {
                 var solveTime = stopwatch.ms;
 
                 solveTime = solveTime + penalty;
@@ -247,7 +247,7 @@ module.exports = function () {
                 botSay('That solve was ' + clc.green(prettify(solveTime)) +
                   (penalty === 0 ? ' (OK)' : clc.red(' (+2)')));
 
-                if (num_solves > 1) {
+                if(num_solves > 1) {
                   charm.position(right_row_num, start_inspect);
                   console.log(clc.red(num_solves < 5 ? 'Previous solve: ' : "This session's AO5: ") +
                     clc.blue(typeof last_solve === 'number' ? prettify(num_solves < 5 ? last_solve : ao5) : 'DNF'));
@@ -271,7 +271,7 @@ module.exports = function () {
 
     }
 
-    if (key.ctrl && key.name === 'c') {
+    if(key.ctrl && key.name === 'c') {
       process.stdin.pause();
     }
   });
