@@ -199,13 +199,13 @@ module.exports = function () {
   var best_time = 0.0;
   var worst_time = 0.0;
 
-  var onKeyPressE = function () {
+  var exitApplication = function () {
     console.log("\n\n" + clc.green("SESSION ENDED. Session stats follow:") + "\n\n");
     print_stats(start_time, total_time.ms, solves_today.length, ao5, ao12, ao_session, best_time, worst_time);
     return process.exit(0);
   }
 
-  var onKeyPressS = function () {
+  var showStatistics = function () {
     charm.erase('line');
     charm.left(1);
 
@@ -269,7 +269,7 @@ module.exports = function () {
     resetForNextSolve();
   }
 
-  var onKeyPressSpace = function () {
+  var handleSolve = function () {
     if(!inspecting && !post_inspecting && !solving) {
       // A new solve has been initiated
       startInspection();
@@ -294,15 +294,15 @@ module.exports = function () {
   var onKeypressFunction = function (ch, key) {
     switch(key.name) {
       case 'e':
-        onKeyPressE();
+        exitApplication();
         break;
 
       case 's':
-        onKeyPressS();
+        showStatistics();
         break;
 
       case 'space':
-        onKeyPressSpace();
+        handleSolve();
         break;
 
       default:
