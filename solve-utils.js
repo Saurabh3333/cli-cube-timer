@@ -69,12 +69,32 @@ function setStartSolve(value) {
   start_solve = value;
 }
 
+function getRightRowNum() {
+  return 50;
+}
+
 function eraseInspectSolveLines() {
   charm.position(1, start_inspect);
   charm.erase('end');
 
   charm.position(1, start_solve);
   charm.erase('end');
+}
+
+function writeIntroduction() {
+  botSay("Hey! Let's start solving!");
+  botSay('The session starts now!');
+}
+
+function addControlsHint() {
+  var right_row_num = getRightRowNum();
+
+  charm.position(right_row_num, 1);
+  charm.write(clc.green('Keyboard shortcuts (press e to exit)'));
+  charm.position(right_row_num, 2);
+  console.log(clc.red('Press space to initiate a solve.'));
+  charm.position(right_row_num, 3);
+  console.log(clc.blue('Press letter s to see your session statistics.'));
 }
 
 exports.prettify = prettify;
@@ -86,4 +106,7 @@ exports.getStartInspect = getStartInspect;
 exports.setStartInspect = setStartInspect;
 exports.getStartSolve = getStartSolve;
 exports.setStartSolve = setStartSolve;
+exports.getRightRowNum = getRightRowNum;
 exports.eraseInspectSolveLines = eraseInspectSolveLines;
+exports.writeIntroduction = writeIntroduction;
+exports.addControlsHint = addControlsHint;

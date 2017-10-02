@@ -151,8 +151,6 @@ module.exports = function () {
   var last_solve = -1;
   var penalty = 0;
 
-  var right_row_num = 50;
-
   var num_solves = 0;
   var solves_today = [];
   var ao5 = 0.0;
@@ -240,7 +238,7 @@ module.exports = function () {
       (penalty === 0 ? ' (OK)' : clc.red(' (+2)')));
 
     if(num_solves > 1) {
-      charm.position(right_row_num, solveUtils.getStartInspect());
+      charm.position(solveUtils.getRightRowNum(), solveUtils.getStartInspect());
       console.log(clc.red(num_solves < 5 ? 'Previous solve: ' : "This session's AO5: ") +
         clc.blue(typeof last_solve === 'number' ? solveUtils.prettify(num_solves < 5 ? last_solve : ao5) : 'DNF'));
     }
@@ -353,25 +351,11 @@ module.exports = function () {
   process.stdin.setRawMode(true);
   process.stdin.resume();
 
-  function writeIntroduction() {
-    solveUtils.botSay("Hey! Let's start solving!");
-    solveUtils.botSay('The session starts now!');
-  }
-
-  function addControlsHint() {
-    charm.position(right_row_num, 1);
-    console.log(clc.green('Keyboard shortcuts (press e to exit)'));
-    charm.position(right_row_num, 2);
-    console.log(clc.red('Press space to initiate a solve.'));
-    charm.position(right_row_num, 3);
-    console.log(clc.blue('Press letter s to see your session statistics.'));
-  }
-
   charm.reset();
-  writeIntroduction();
+  solveUtils.writeIntroduction();
   prepNewSolve();
 
-  addControlsHint();
+  solveUtils.addControlsHint();
 
   var start_time = new Date();
   start_time = start_time.getHours() + ':' + start_time.getMinutes();
