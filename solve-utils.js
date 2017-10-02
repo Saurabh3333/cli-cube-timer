@@ -13,6 +13,17 @@ function getCharm() {
   return charm;
 }
 
+/**
+ * Shortcut function to write msg at specific location
+ * @param {number} posX
+ * @param {number} posY
+ * @param {string} msg
+ */
+function writeAt(posX, posY, msg) {
+  charm.position(posX, posY);
+  charm.write(msg);
+}
+
 function prettify(ms) {
   return prettyMs(ms, {secDecimalDigits: 2});
 }
@@ -100,15 +111,13 @@ function writeIntroduction() {
 function addControlsHint() {
   var right_row_num = getRightRowNum();
 
-  charm.position(right_row_num, 1);
-  charm.write(clc.green('Keyboard shortcuts (press e to exit)'));
-  charm.position(right_row_num, 2);
-  console.log(clc.red('Press space to initiate a solve.'));
-  charm.position(right_row_num, 3);
-  console.log(clc.blue('Press letter s to see your session statistics.'));
+  writeAt(right_row_num, 1, clc.green('Keyboard shortcuts (press e to exit)'));
+  writeAt(right_row_num, 2, clc.red('Press space to initiate a solve.'));
+  writeAt(right_row_num, 3, clc.blue('Press letter s to see your session statistics.'));
 }
 
 exports.getCharm = getCharm;
+exports.writeAt = writeAt;
 exports.prettify = prettify;
 exports.prettifyVerbose = prettifyVerbose;
 exports.botSay = botSay;
