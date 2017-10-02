@@ -405,17 +405,25 @@ module.exports = function () {
   process.stdin.setRawMode(true);
   process.stdin.resume();
 
+  function writeIntroduction() {
+    botSay("Hey! Let's start solving!");
+    botSay('The session starts now!');
+  }
+
+  function addControlsHint() {
+    charm.position(right_row_num, 1);
+    console.log(clc.green('Keyboard shortcuts (press e to exit)'));
+    charm.position(right_row_num, 2);
+    console.log(clc.red('Press space to initiate a solve.'));
+    charm.position(right_row_num, 3);
+    console.log(clc.blue('Press letter s to see your session statistics.'));
+  }
+
   charm.reset();
-  botSay("Hey! Let's start solving!");
-  botSay('The session starts now!');
+  writeIntroduction();
   prepNewSolve();
 
-  charm.position(right_row_num, 1);
-  console.log(clc.green('Keyboard shortcuts (press e to exit)'));
-  charm.position(right_row_num, 2);
-  console.log(clc.red('Press space to initiate a solve.'));
-  charm.position(right_row_num, 3);
-  console.log(clc.blue('Press letter s to see your session statistics.'));
+  addControlsHint();
 
   var start_time = new Date();
   start_time = start_time.getHours() + ':' + start_time.getMinutes();
