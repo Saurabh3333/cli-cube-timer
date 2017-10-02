@@ -24,6 +24,20 @@ function writeAt(posX, posY, msg) {
   charm.write(msg);
 }
 
+function writeLines(msgArray) {
+  if(!Array.isArray(msgArray)) {
+    return;
+  }
+
+  charm.position(function (curX, curY) {
+    for(var msg of msgArray) {
+      charm.position(0, curY);
+      charm.write(msg);
+      charm.down(1);
+    }
+  });
+}
+
 function prettify(ms) {
   return prettyMs(ms, {secDecimalDigits: 2});
 }
@@ -41,10 +55,12 @@ function userSay(phrase) {
 }
 
 function print_stats(start_time, total_ms, num_solves, ao5, ao12, ao_session, best_time, worst_time) {
-  console.log('Session statistics');
-  console.log('Session started at ' + start_time);
-  console.log('You have been cubing for ' + prettifyVerbose(total_ms));
-  console.log('Total solves: ' + clc.blue(num_solves));
+  writeLines([
+    'Session statistics',
+    'Session started at ' + start_time,
+    'You have been cubing for ' + prettifyVerbose(total_ms),
+    'Total solves: ' + clc.blue(num_solves)
+  ]);
 
   if(best_time !== undefined) {
     console.log(clc.green('Best solve: ') + clc.blue(prettifyVerbose(best_time)));
@@ -118,6 +134,7 @@ function addControlsHint() {
 
 exports.getCharm = getCharm;
 exports.writeAt = writeAt;
+exports.writeLines = writeLines;
 exports.prettify = prettify;
 exports.prettifyVerbose = prettifyVerbose;
 exports.botSay = botSay;
