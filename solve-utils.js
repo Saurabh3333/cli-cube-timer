@@ -1,6 +1,17 @@
-var charm = require('charm')();
 var prettyMs = require('pretty-ms');
 var clc = require('cli-color');
+
+var charm = null;
+
+function getCharm() {
+  if(charm === null) {
+    charm = require('charm')();
+    charm.pipe(process.stdout);
+    charm.reset();
+  }
+
+  return charm;
+}
 
 function prettify(ms) {
   return prettyMs(ms, {secDecimalDigits: 2});
@@ -97,6 +108,7 @@ function addControlsHint() {
   console.log(clc.blue('Press letter s to see your session statistics.'));
 }
 
+exports.getCharm = getCharm;
 exports.prettify = prettify;
 exports.prettifyVerbose = prettifyVerbose;
 exports.botSay = botSay;

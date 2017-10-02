@@ -1,10 +1,11 @@
 module.exports = function () {
-  var charm = require('charm')();
   var keypress = require('keypress');
   var Scrambo = require('scrambo');
   var Stopwatch = require('timer-stopwatch');
-  var solveUtils = require('./solve-utils');
   var clc = require('cli-color');
+
+  var solveUtils = require('./solve-utils');
+  var charm = solveUtils.getCharm();
 
   var threebythree = new Scrambo();
 
@@ -60,10 +61,6 @@ module.exports = function () {
     best_time = stats.best_time;
     worst_time = stats.worst_time;
   }
-
-
-
-  charm.pipe(process.stdout);
 
   keypress(process.stdin);
 
@@ -351,7 +348,6 @@ module.exports = function () {
   process.stdin.setRawMode(true);
   process.stdin.resume();
 
-  charm.reset();
   solveUtils.writeIntroduction();
   prepNewSolve();
 
