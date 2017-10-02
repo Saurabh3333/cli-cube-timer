@@ -1,3 +1,4 @@
+var charm = require('charm')();
 var prettyMs = require('pretty-ms');
 var clc = require('cli-color');
 
@@ -49,8 +50,40 @@ function print_stats(start_time, total_ms, num_solves, ao5, ao12, ao_session, be
   return ret;
 }
 
+var start_inspect = 5; //TODO: get rid of magic numbers
+var start_solve = 6;
+
+function getStartInspect() {
+  return start_inspect;
+}
+
+function setStartInspect(value) {
+  start_inspect = value;
+}
+
+function getStartSolve() {
+  return start_solve;
+}
+
+function setStartSolve(value) {
+  start_solve = value;
+}
+
+function eraseInspectSolveLines() {
+  charm.position(1, start_inspect);
+  charm.erase('end');
+
+  charm.position(1, start_solve);
+  charm.erase('end');
+}
+
 exports.prettify = prettify;
 exports.prettifyVerbose = prettifyVerbose;
 exports.botSay = botSay;
 exports.userSay = userSay;
 exports.print_stats = print_stats;
+exports.getStartInspect = getStartInspect;
+exports.setStartInspect = setStartInspect;
+exports.getStartSolve = getStartSolve;
+exports.setStartSolve = setStartSolve;
+exports.eraseInspectSolveLines = eraseInspectSolveLines;

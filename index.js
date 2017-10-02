@@ -20,14 +20,6 @@ module.exports = function () {
     solveUtils.botSay(this_scramble);
   }
 
-  function eraseInspectSolveLines() {
-    charm.position(1, start_inspect);
-    charm.erase('end');
-
-    charm.position(1, start_solve);
-    charm.erase('end');
-  }
-
   function endSolve() {
     stopwatch.stop();
 
@@ -38,7 +30,7 @@ module.exports = function () {
     // start_solve += 1;
     // start_inspect += 1;
 
-    eraseInspectSolveLines();
+    solveUtils.eraseInspectSolveLines();
   }
 
   function resetForNextSolve() {
@@ -86,11 +78,13 @@ module.exports = function () {
 
   var onInspectTimeFunction = function (time) {
     if(!inspect.hasBeenStopped) {
-      charm.position(1, start_inspect).write('Inspecting: ' + String('00' + (time.ms / 1000).toFixed()).slice(-2));
+      charm.position(1, solveUtils.getStartInspect()).write('Inspecting: ' + String('00' + (time.ms / 1000).toFixed()).slice(-2));
     }
   };
 
   var onInspectDoneFunction = function () {
+    var start_inspect = solveUtils.getStartInspect();
+
     charm.position(1, start_inspect);
     charm.erase('end');
     charm.position(1, start_inspect + 1);
@@ -103,6 +97,8 @@ module.exports = function () {
   };
 
   var onPostInspectDoneFunction = function () {
+    var start_inspect = solveUtils.getStartInspect();
+
     charm.position(1, start_inspect);
     charm.erase('end');
     charm.position(1, start_inspect + 1);
@@ -115,8 +111,9 @@ module.exports = function () {
     charm.position(1, start_inspect);
     solveUtils.botSay('That solve was ' + clc.green('DNF'));
     prepNewSolve();
-    start_inspect += 3;
-    start_solve += 3;
+
+    solveUtils.setStartInspect(start_inspect + 3);
+    solveUtils.setStartSolve(solveUtils.getStartSolve() + 3);
     last_solve = 'DNF';
 
   };
@@ -130,7 +127,7 @@ module.exports = function () {
     if(!solving) {
       return;
     }
-    charm.position(1, start_solve).write('Solving: ' + (time.ms / 1000).toFixed(2));
+    charm.position(1, solveUtils.getStartSolve()).write('Solving: ' + (time.ms / 1000).toFixed(2));
   };
 
   stopwatch.on('time', onStopwatchTimeFunction);
@@ -150,9 +147,6 @@ module.exports = function () {
   var post_inspecting = false;
   var solving = false;
   var post_solving = false;
-
-  var start_inspect = 5;
-  var start_solve = 6;
 
   var last_solve = -1;
   var penalty = 0;
@@ -195,8 +189,8 @@ module.exports = function () {
 
     solveUtils.userSay('Press space to initiate a new solve');
 
-    start_solve += (STATS_LINES + printed.solve);
-    start_inspect += (STATS_LINES + printed.inspect);
+    solveUtils.setStartSolve(STATS_LINES + printed.solve);
+    solveUtils.setStartInspect(STATS_LINES + printed.inspect);
   }
 
   var startInspection = function () {
@@ -241,17 +235,17 @@ module.exports = function () {
 
     endSolve();
 
-    charm.position(1, start_inspect);
+    charm.position(1, solveUtils.getStartInspect());
     solveUtils.botSay('That solve was ' + clc.green(solveUtils.prettify(solveTime)) +
       (penalty === 0 ? ' (OK)' : clc.red(' (+2)')));
 
     if(num_solves > 1) {
-      charm.position(right_row_num, start_inspect);
+      charm.position(right_row_num, solveUtils.getStartInspect());
       console.log(clc.red(num_solves < 5 ? 'Previous solve: ' : "This session's AO5: ") +
         clc.blue(typeof last_solve === 'number' ? solveUtils.prettify(num_solves < 5 ? last_solve : ao5) : 'DNF'));
     }
 
-    charm.position(1, start_inspect + 1);
+    charm.position(1, solveUtils.getStartInspect() + 1);
     solveUtils.botSay('How did you fare? Press + to add penalty or d to set DNF.');
 
     last_solve = solveTime;
@@ -384,5 +378,5 @@ module.exports = function () {
 
   var total_time = new Stopwatch();
   total_time.start();
-  charm.position(1, start_inspect);
+  charm.position(1, solveUtils.getStartInspect());
 };
