@@ -1,10 +1,10 @@
 module.exports = function () {
   var charm = require('charm')();
-  var clc = require('cli-color');
   var keypress = require('keypress');
-  var prettyMs = require('pretty-ms');
   var Scrambo = require('scrambo');
   var Stopwatch = require('timer-stopwatch');
+  var solveUtils = require('./solve-utils');
+  var clc = require('cli-color');
 
   var threebythree = new Scrambo();
 
@@ -14,26 +14,10 @@ module.exports = function () {
 
   const STATS_LINES = 11;
 
-  function prettify(ms) {
-    return prettyMs(ms, {secDecimalDigits: 2});
-  }
-
-  function prettifyVerbose(ms) {
-    return prettyMs(ms, {verbose: true, secDecimalDigits: 2});
-  }
-
-  function botSay(phrase) {
-    console.log(clc.red('Bot: ') + phrase);
-  }
-
-  function userSay(phrase) {
-    console.log(clc.blue('You: ') + phrase);
-  }
-
   function prepNewSolve() {
-    userSay('Press space to initiate a solve.');
+    solveUtils.userSay('Press space to initiate a solve.');
     this_scramble = threebythree.get(1).join(' ');
-    botSay(this_scramble);
+    solveUtils.botSay(this_scramble);
   }
 
   function eraseInspectSolveLines() {
@@ -85,37 +69,7 @@ module.exports = function () {
     worst_time = stats.worst_time;
   }
 
-  function print_stats(start_time, total_ms, num_solves, ao5, ao12, ao_session, best_time, worst_time) {
-    console.log('Session statistics');
-    console.log('Session started at ' + start_time);
-    console.log('You have been cubing for ' + prettifyVerbose(total_ms));
-    console.log('Total solves: ' + clc.blue(num_solves));
 
-    if(best_time !== undefined) {
-      console.log(clc.green('Best solve: ') + clc.blue(prettifyVerbose(best_time)));
-    }
-
-    if(worst_time !== undefined) {
-      console.log(clc.green('Worst solve: ') + clc.blue(prettifyVerbose(worst_time)));
-    }
-
-    var ret = {solve: 0, inspect: 0};
-
-    if(num_solves >= 5) {
-      console.log('Your current ' + clc.red('AO5') + ' is ' + clc.blue(prettifyVerbose(ao5)));
-      ret.solve++;
-      ret.inspect++;
-    }
-    if(num_solves >= 12) {
-      console.log('Your current ' + clc.red('AO12') + ' is ' + clc.blue(prettifyVerbose(ao12)));
-      ret.solve++;
-      ret.inspect++;
-    }
-
-    console.log('Your current ' + clc.red('Session average') + ' is ' + clc.blue(prettifyVerbose(ao_session)));
-
-    return ret;
-  }
 
   charm.pipe(process.stdout);
 
@@ -159,7 +113,7 @@ module.exports = function () {
     resetForNextSolve();
     writeLocal('DNF', this_scramble);
     charm.position(1, start_inspect);
-    botSay('That solve was ' + clc.green('DNF'));
+    solveUtils.botSay('That solve was ' + clc.green('DNF'));
     prepNewSolve();
     start_inspect += 3;
     start_solve += 3;
@@ -229,7 +183,7 @@ module.exports = function () {
 
   var exitApplication = function () {
     console.log("\n\n" + clc.green("SESSION ENDED. Session stats follow:") + "\n\n");
-    print_stats(start_time, total_time.ms, solves_today.length, ao5, ao12, ao_session, best_time, worst_time);
+    solveUtils.print_stats(start_time, total_time.ms, solves_today.length, ao5, ao12, ao_session, best_time, worst_time);
     return process.exit(0);
   }
 
@@ -237,9 +191,9 @@ module.exports = function () {
     charm.erase('line');
     charm.left(1);
 
-    var printed = print_stats(start_time, total_time.ms, solves_today.length, ao5, ao12, ao_session, best_time, worst_time);
+    var printed = solveUtils.print_stats(start_time, total_time.ms, solves_today.length, ao5, ao12, ao_session, best_time, worst_time);
 
-    userSay('Press space to initiate a new solve');
+    solveUtils.userSay('Press space to initiate a new solve');
 
     start_solve += (STATS_LINES + printed.solve);
     start_inspect += (STATS_LINES + printed.inspect);
@@ -288,17 +242,17 @@ module.exports = function () {
     endSolve();
 
     charm.position(1, start_inspect);
-    botSay('That solve was ' + clc.green(prettify(solveTime)) +
+    solveUtils.botSay('That solve was ' + clc.green(solveUtils.prettify(solveTime)) +
       (penalty === 0 ? ' (OK)' : clc.red(' (+2)')));
 
     if(num_solves > 1) {
       charm.position(right_row_num, start_inspect);
       console.log(clc.red(num_solves < 5 ? 'Previous solve: ' : "This session's AO5: ") +
-        clc.blue(typeof last_solve === 'number' ? prettify(num_solves < 5 ? last_solve : ao5) : 'DNF'));
+        clc.blue(typeof last_solve === 'number' ? solveUtils.prettify(num_solves < 5 ? last_solve : ao5) : 'DNF'));
     }
 
     charm.position(1, start_inspect + 1);
-    botSay('How did you fare? Press + to add penalty or d to set DNF.');
+    solveUtils.botSay('How did you fare? Press + to add penalty or d to set DNF.');
 
     last_solve = solveTime;
   }
@@ -406,8 +360,8 @@ module.exports = function () {
   process.stdin.resume();
 
   function writeIntroduction() {
-    botSay("Hey! Let's start solving!");
-    botSay('The session starts now!');
+    solveUtils.botSay("Hey! Let's start solving!");
+    solveUtils.botSay('The session starts now!');
   }
 
   function addControlsHint() {
